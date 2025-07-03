@@ -1,16 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
-
-// Default model can be overridden in your env vars
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const DEFAULT_MODEL = process.env.OPENAI_MODEL ?? 'gpt-4o';
 
-/**
- * Helper that wraps the OpenAI chat completion call.
- */
+// ─── Helper ─────────────────────────────────────────────────────────────
 const chatWith = (model: string, prompt: string) =>
     openai.chat.completions.create({
         model,
@@ -18,9 +12,9 @@ const chatWith = (model: string, prompt: string) =>
         temperature: 0.7,
     });
 
+// ─── POST /api/analyze ──────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
     try {
-        // Extract body
         const { cvText, targetRole } = await req.json();
 
         if (!cvText || !targetRole) {
@@ -30,31 +24,45 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Build prompt (versión con “corazón”)
+        // ─── Prompt v2 ─────────────────────────────────────────────────────
         const prompt = `
-You are a warm-hearted, senior career coach with 15 + years helping talented people land their dream roles.
-Please review the résumé below as if the candidate were your own mentee applying for a “${targetRole}” position.
+You are **Coach Aurora**, a seasoned career mentor (15 + years) known for
+giving honest yet encouraging feedback.
 
-1. Open with a short, encouraging overview (2–3 sentences) that shows you understand their unique value.
-2. **Five standout strengths** — cite concrete evidence from the résumé.
-3. **Three growth opportunities** — explain *why* each matters for this role **and** give a clear, doable fix (e.g. rewrite a bullet, add a metric, reorder a section).
-4. Propose 2–3 punchy accomplishment bullets written in STAR format, tailored to the “${targetRole}” position.
-5. Finish with a motivational closing line that leaves them confident and inspired.
+Review the résumé below for a **“${targetRole}”** application and deliver:
 
-Be specific, actionable, and human — let them feel you genuinely care about their success.
+1. **Brief snapshot** (2 – 3 sentences): highlight their unique value & tone-set.
+2. **Five standout strengths**
+   • Quote specific evidence from the résumé (metrics, keywords, results).
+3. **Three frank growth opportunities**
+   • For each, explain *why it matters* for ${targetRole}.
+   • Include one clear fix (“Add X metric”, “Reorder Y section”, etc.).
+4. **STAR bullets (2 – 3)** — one bullet each, formatted **exactly**:
 
-Résumé:
+   • *Situation:* …
+   • *Task:* …
+   • *Action:* …
+   • *Result:* …
+
+   (No text on the same line; four separate lines per bullet.)
+5. **Motivational close** (1 sentence) — upbeat but realistic.
+
+Be warm and human, but do **not** sugar-coat weaknesses; the mentee wants the truth to improve quickly.
+
+Résumé ↓↓↓
+------------
 ${cvText}
+------------
 `.trim();
-
-        // First attempt with the default model
+        // ── First call ─────────────────────────────────────────────────────
         try {
             const completion = await chatWith(DEFAULT_MODEL, prompt);
             const feedback = completion.choices[0]?.message?.content ?? '';
             return NextResponse.json({ feedback });
         } catch (err: unknown) {
             const e = err as { status?: number; code?: string };
-            // If quota/rate-limit error and we're not already on 3.5, retry cheaply
+
+            // Downgrade if cuota agotada
             if (
                 (e.status === 429 || e.code === 'insufficient_quota') &&
                 DEFAULT_MODEL !== 'gpt-3.5-turbo'
@@ -64,14 +72,11 @@ ${cvText}
                 return NextResponse.json({ feedback, downgraded: true });
             }
 
-            console.error('OpenAI error:', err);
-            return NextResponse.json(
-                { error: 'Internal Server Error' },
-                { status: 500 },
-            );
+            console.error('[OpenAI]', err);
+            return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
         }
     } catch (parseErr) {
-        console.error('Bad request body:', parseErr);
+        console.error('[analyze] bad body', parseErr);
         return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
 }

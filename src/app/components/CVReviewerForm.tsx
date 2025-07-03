@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import {
     Alert,
+    Backdrop,            // ← NEW
     Box,
     Button,
     CircularProgress,
@@ -23,6 +24,8 @@ import {
     createTheme,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';       // ← NEW
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';// ← NEW
 
 // Lux in Tenebris: dark + neon purples
 const theme = createTheme({
@@ -38,108 +41,94 @@ export default function CVReviewerForm() {
     const [fileName, setFileName] = useState('');
     const [targetRole, setTargetRole] = useState('Frontend');
     const [feedback, setFeedback] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(false);     // analizar CV
+    const [uploading, setUploading] = useState(false); // leer PDF
     const [openModal, setOpenModal] = useState(false);
+    const [fullScreen, setFullScreen] = useState(false);
     const [cooldown, setCooldown] = useState(0);
-
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-    // cooldown timer
+    // ───────── Cool-down timer ─────────
     useEffect(() => {
         if (!cooldown) return;
-        const id = setInterval(() => setCooldown((s) => Math.max(s - 1, 0)), 1000);
+        const id = setInterval(() => setCooldown(s => Math.max(s - 1, 0)), 1000);
         return () => clearInterval(id);
     }, [cooldown]);
 
-    // markdown-like formatting → HTML
+    // markdown → html
     const formattedFeedback = useMemo(() => {
-        let html = feedback;
-        // ###+ headings
-        html = html.replace(
-            /^### (.*)$/gm,
-            '<h3 class="sectionTitle">$1</h3>',
-        );
-        // **bold** highlights
-        html = html.replace(
-            /\*\*(.*?)\*\*/g,
-            '<span class="feedbackHeading">$1</span>',
-        );
-        return html;
+        return feedback
+            .replace(/^### (.*)$/gm, '<h3 class="sectionTitle">$1</h3>')
+            .replace(/\*\*(.*?)\*\*/g, '<span class="feedbackHeading">$1</span>');
     }, [feedback]);
 
-    // upload handler
+    // ───────── Upload handler ─────────
     const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        setUploading(true);
         const formData = new FormData();
         formData.append('file', file);
 
         const res = await fetch('/api/upload', { method: 'POST', body: formData });
         const data = await res.json();
+        setUploading(false);
 
         if (res.ok) {
-            setCvText(data.text);
-            setFileName(file.name);
-            setFeedback('');
+            setCvText(data.text); setFileName(file.name); setFeedback('');
         } else {
-            setCvText('');
-            setFileName('');
-            alert(data.error || 'Failed to read PDF');
+            setCvText(''); setFileName(''); alert(data.error || 'Failed to read PDF');
         }
     };
 
-    // analyze handler
+    // ───────── Analyze handler ─────────
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!cvText || cooldown) return;
 
-        setLoading(true);
-        setFeedback('');
-
+        setLoading(true); setFeedback('');
         const res = await fetch('/api/analyze', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ cvText, targetRole }),
         });
         const data = await res.json();
-        setFeedback(res.ok ? data.feedback : data.error || 'Error');
         setLoading(false);
+
+        setFeedback(res.ok ? data.feedback : data.error || 'Error');
         setOpenModal(true);
-        setCooldown(30); // 30-second cooldown
+        setCooldown(30);
     };
 
     const handleDownload = () => {
         const blob = new Blob([feedback], { type: 'text/plain;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
-        a.download = `${fileName || 'cv'}-feedback.txt`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        a.href = url; a.download = `${fileName || 'cv'}-feedback.txt`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
         URL.revokeObjectURL(url);
     };
 
     const handleClearFile = () => {
-        setFileName('');
-        setCvText('');
-        setFeedback('');
+        setFileName(''); setCvText(''); setFeedback('');
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    // render
+    // ───────── UI ─────────
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
+
+            {/* Backdrop mientras se lee el PDF */}
+            <Backdrop open={uploading} sx={{ zIndex: theme.zIndex.modal + 1 }}>
+                <CircularProgress />
+                <Typography sx={{ ml: 2 }}>Reading PDF…</Typography>
+            </Backdrop>
+
             <Container
                 maxWidth="sm"
-                sx={{
-                    mt: 14,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                }}
+                sx={{ mt: 14, display: 'flex', flexDirection: 'column', alignItems: 'center' }}
             >
                 <Typography variant="h4" gutterBottom color="primary" sx={{ textAlign: 'center' }}>
                     CV Reviewer
@@ -150,7 +139,12 @@ export default function CVReviewerForm() {
                     onSubmit={handleSubmit}
                     sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}
                 >
-                    <Button variant="outlined" component="label" color="primary">
+                    <Button
+                        variant="outlined"
+                        component="label"
+                        color="primary"
+                        disabled={uploading || loading}
+                    >
                         Upload PDF
                         <input
                             type="file"
@@ -165,12 +159,7 @@ export default function CVReviewerForm() {
                         <Alert
                             severity="success"
                             action={
-                                <IconButton
-                                    aria-label="remove file"
-                                    size="small"
-                                    color="inherit"
-                                    onClick={handleClearFile}
-                                >
+                                <IconButton size="small" color="inherit" onClick={handleClearFile}>
                                     <CloseIcon fontSize="inherit" />
                                 </IconButton>
                             }
@@ -179,14 +168,14 @@ export default function CVReviewerForm() {
                         </Alert>
                     )}
 
-                    <FormControl fullWidth>
+                    <FormControl fullWidth disabled={uploading || loading}>
                         <InputLabel>Target Role</InputLabel>
                         <Select
                             value={targetRole}
                             label="Target Role"
                             onChange={(e: SelectChangeEvent) => setTargetRole(e.target.value)}
                         >
-                            {['Frontend', 'Backend', 'Fullstack', 'Data Analyst', 'DevOps'].map((r) => (
+                            {['Frontend', 'Backend', 'Fullstack', 'Data Analyst', 'DevOps'].map(r => (
                                 <MenuItem key={r} value={r}>
                                     {r}
                                 </MenuItem>
@@ -197,9 +186,11 @@ export default function CVReviewerForm() {
                     <Button
                         type="submit"
                         variant="contained"
-                        disabled={loading || !cvText || cooldown > 0}
+                        disabled={loading || uploading || !cvText || cooldown > 0}
                     >
-                        {loading ? <CircularProgress size={24} /> : cooldown ? `Wait ${cooldown}s` : 'Analyze CV'}
+                        {loading
+                            ? <CircularProgress size={24} />
+                            : cooldown ? `Wait ${cooldown}s` : 'Analyze CV'}
                     </Button>
 
                     {feedback && !openModal && (
@@ -216,32 +207,58 @@ export default function CVReviewerForm() {
                     scroll="paper"
                     fullWidth
                     maxWidth="md"
+                    fullScreen={fullScreen}
                 >
-                    <DialogTitle color="primary">Feedback</DialogTitle>
+                    <DialogTitle
+                        color="primary"
+                        sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                    >
+                        Feedback
+                        <IconButton
+                            size="small"
+                            color="inherit"
+                            onClick={() => setFullScreen(fs => !fs)}
+                        >
+                            {fullScreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+                        </IconButton>
+                    </DialogTitle>
 
                     <DialogContent
                         dividers
                         sx={{
-                            maxHeight: '60vh',
+                            display: 'flex',
+                            gap: 3,
+                            maxHeight: fullScreen ? '100vh' : '60vh',
                             '& .feedbackHeading': { color: 'secondary.main', fontWeight: 600 },
-                            '& .sectionTitle': {
-                                marginTop: 2,
-                                marginBottom: 1,
-                                paddingBottom: 1,
-                                borderBottom: '1px solid',
-                                borderColor: 'primary.main',
-                                color: 'primary.main',
-                                fontWeight: 700,
-                            },
                             '&::-webkit-scrollbar': { width: 8 },
                             '&::-webkit-scrollbar-thumb': { backgroundColor: '#7c4dff', borderRadius: 4 },
                         }}
                     >
-                        <Typography
-                            component="div"
-                            sx={{ whiteSpace: 'pre-wrap' }}
-                            dangerouslySetInnerHTML={{ __html: formattedFeedback }}
-                        />
+                        {/* retrato */}
+                        <Box flex="0 0 120px" sx={{ display: 'flex', justifyContent: 'center' }}>
+                            <Box
+                                component="img"
+                                src="/coach-aurora.png"
+                                alt="Coach Aurora"
+                                sx={{
+                                    width: 110,
+                                    height: 110,
+                                    borderRadius: '50%',
+                                    objectFit: 'cover',
+                                    border: '3px solid',
+                                    borderColor: 'secondary.main',
+                                }}
+                            />
+                        </Box>
+
+                        {/* feedback */}
+                        <Box flex="1 1 auto" sx={{ overflowY: 'auto', pr: 1 }}>
+                            <Typography
+                                component="div"
+                                sx={{ whiteSpace: 'pre-wrap' }}
+                                dangerouslySetInnerHTML={{ __html: formattedFeedback }}
+                            />
+                        </Box>
                     </DialogContent>
 
                     <DialogActions sx={{ px: 3, pb: 2 }}>
