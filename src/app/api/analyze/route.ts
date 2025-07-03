@@ -52,10 +52,11 @@ ${cvText}
             const completion = await chatWith(DEFAULT_MODEL, prompt);
             const feedback = completion.choices[0]?.message?.content ?? '';
             return NextResponse.json({ feedback });
-        } catch (err: any) {
+        } catch (err: unknown) {
+            const e = err as { status?: number; code?: string };
             // If quota/rate-limit error and we're not already on 3.5, retry cheaply
             if (
-                (err.status === 429 || err.code === 'insufficient_quota') &&
+                (e.status === 429 || e.code === 'insufficient_quota') &&
                 DEFAULT_MODEL !== 'gpt-3.5-turbo'
             ) {
                 const fallback = await chatWith('gpt-3.5-turbo', prompt);

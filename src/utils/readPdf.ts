@@ -1,9 +1,20 @@
 'use client';
 
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
+import type {
+    TextItem,
+    TextMarkedContent,
+} from 'pdfjs-dist/types/src/display/api';
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
 GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+
+// type-guard para distinguir los ítems que sí traen texto
+function isTextItem(
+    item: TextItem | TextMarkedContent,
+): item is TextItem {
+    return 'str' in item;
+}
 
 export async function extractTextFromPdf(file: File): Promise<string> {
     const reader = new FileReader();
@@ -18,7 +29,12 @@ export async function extractTextFromPdf(file: File): Promise<string> {
                 for (let i = 1; i <= pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
                     const content = await page.getTextContent();
-                    const pageText = content.items.map((item: any) => item.str).join(' ');
+
+                    const pageText = content.items
+                        .filter(isTextItem)               // descarta marcas sin texto
+                        .map((item) => item.str)
+                        .join(' ');
+
                     text += pageText + '\n';
                 }
 
