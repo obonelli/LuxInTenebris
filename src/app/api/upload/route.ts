@@ -14,7 +14,8 @@ import type {
 // ─── Next.js runtime flags ───────────────────────────────────────────────
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const maxDuration = 30; // s
+export const maxDuration = 30;
+const MAX_FILE_SIZE = 4_500_000;
 
 // Indicamos a pdfjs dónde está el worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
@@ -29,7 +30,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
         }
 
-        if (file.size > 4_500_000) {
+        if (file.size > MAX_FILE_SIZE) {
             return NextResponse.json(
                 { error: 'PDF too large (4.5 MB limit)' },
                 { status: 413 },
