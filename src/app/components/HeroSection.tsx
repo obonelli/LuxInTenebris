@@ -6,11 +6,11 @@ import { useRouter } from 'next/navigation';
 export default function HeroSection() {
     const router = useRouter();
 
-    /* Colores */
     const baseColor = '#E4E4FF';
     const neonColor = '#7C4DFF';
+    const textGradient =
+        'linear-gradient(90deg,#E4E4FF 0%,#CBCBFF 50%,#E4E4FF 100%)';
 
-    /* Título largo para desktop */
     const title = 'Ignite Your Career in the Dark';
 
     return (
@@ -36,23 +36,7 @@ export default function HeroSection() {
                     LUX IN TENEBRIS
                 </Typography>
 
-                {/* --- Title mobile (simple, sin cortes) --- */}
-                <Typography
-                    component="h1"
-                    variant="h4"
-                    sx={{
-                        mt: 1,
-                        fontWeight: 800,
-                        lineHeight: 1.15,
-                        color: baseColor,
-                        display: { xs: 'block', md: 'none' }, // solo en xs–sm
-                        whiteSpace: 'pre-line',
-                    }}
-                >
-                    {`Ignite Your\nCareer in the\nDark`}
-                </Typography>
-
-                {/* --- Title desktop (efecto por letra) --- */}
+                {/* Title desktop */}
                 <Typography
                     component="h1"
                     variant="h2"
@@ -62,7 +46,7 @@ export default function HeroSection() {
                         lineHeight: 1.1,
                         color: baseColor,
                         userSelect: 'none',
-                        display: { xs: 'none', md: 'inline-block' }, // md en adelante
+                        display: { xs: 'none', md: 'inline-block' },
                     }}
                 >
                     {title.split('').map((ch, i) => (
@@ -81,6 +65,22 @@ export default function HeroSection() {
                             {ch === ' ' ? '\u00A0' : ch}
                         </Box>
                     ))}
+                </Typography>
+
+                {/* Title mobile */}
+                <Typography
+                    component="h1"
+                    variant="h4"
+                    sx={{
+                        mt: 1,
+                        fontWeight: 800,
+                        lineHeight: 1.15,
+                        color: baseColor,
+                        display: { xs: 'block', md: 'none' },
+                        whiteSpace: 'pre-line',
+                    }}
+                >
+                    {`Ignite Your\nCareer in the\nDark`}
                 </Typography>
 
                 {/* Subtitle */}
@@ -114,18 +114,26 @@ export default function HeroSection() {
                         },
                     }}
                 >
+                    {/* Texto gradiente */}
                     <Box
                         component="span"
                         sx={{
                             mr: 1,
-                            background:
-                                'linear-gradient(90deg,#E4E4FF 0%,#CBCBFF 50%,#E4E4FF 100%)',
+                            background: textGradient,
                             WebkitBackgroundClip: 'text',
                             color: 'transparent',
                         }}
                     >
                         Illuminate&nbsp;my&nbsp;Résumé
                     </Box>
+
+                    {/* Rayo animado (gif) */}
+                    <Box
+                        component="img"
+                        src="/icons/bolt.gif"
+                        alt="⚡"
+                        sx={{ width: 20, height: 20 }}
+                    />
                 </Button>
             </Container>
         </Box>
