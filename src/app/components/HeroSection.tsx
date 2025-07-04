@@ -7,10 +7,10 @@ export default function HeroSection() {
     const router = useRouter();
 
     /* Colores */
-    const baseColor = '#E4E4FF';        // plateado-lila
-    const neonColor = '#7C4DFF';        // morado neón
+    const baseColor = '#E4E4FF';
+    const neonColor = '#7C4DFF';
 
-    /* Título a dividir en caracteres */
+    /* Título largo para desktop */
     const title = 'Ignite Your Career in the Dark';
 
     return (
@@ -36,7 +36,23 @@ export default function HeroSection() {
                     LUX IN TENEBRIS
                 </Typography>
 
-                {/* Title con efecto per-char */}
+                {/* --- Title mobile (simple, sin cortes) --- */}
+                <Typography
+                    component="h1"
+                    variant="h4"
+                    sx={{
+                        mt: 1,
+                        fontWeight: 800,
+                        lineHeight: 1.15,
+                        color: baseColor,
+                        display: { xs: 'block', md: 'none' }, // solo en xs–sm
+                        whiteSpace: 'pre-line',
+                    }}
+                >
+                    {`Ignite Your\nCareer in the\nDark`}
+                </Typography>
+
+                {/* --- Title desktop (efecto por letra) --- */}
                 <Typography
                     component="h1"
                     variant="h2"
@@ -46,7 +62,7 @@ export default function HeroSection() {
                         lineHeight: 1.1,
                         color: baseColor,
                         userSelect: 'none',
-                        display: 'inline-block',
+                        display: { xs: 'none', md: 'inline-block' }, // md en adelante
                     }}
                 >
                     {title.split('').map((ch, i) => (
@@ -56,7 +72,6 @@ export default function HeroSection() {
                             sx={{
                                 display: 'inline-block',
                                 transition: 'color .25s, text-shadow .25s',
-                                cursor: 'default',
                                 '&:hover': {
                                     color: neonColor,
                                     textShadow: `0 0 8px ${neonColor}`,
@@ -99,7 +114,6 @@ export default function HeroSection() {
                         },
                     }}
                 >
-                    {/* Texto con gradiente suave */}
                     <Box
                         component="span"
                         sx={{
@@ -112,14 +126,6 @@ export default function HeroSection() {
                     >
                         Illuminate&nbsp;my&nbsp;Résumé
                     </Box>
-
-                    {/* Icono animado */}
-                    <Box
-                        component="img"
-                        src="/icons/bolt.gif"
-                        alt="⚡"
-                        sx={{ width: 20, height: 20 }}
-                    />
                 </Button>
             </Container>
         </Box>
