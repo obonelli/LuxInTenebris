@@ -9,7 +9,7 @@ import type { JWT } from 'next-auth/jwt';
 const prisma = new PrismaClient();
 
 export const authOptions: NextAuthOptions = {
-    debug: true,
+    debug: false,
     adapter: PrismaAdapter(prisma),
     providers: [
         GoogleProvider({
