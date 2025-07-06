@@ -3,7 +3,7 @@
 import { Box, Button, Container } from '@mui/material';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import { useRouter } from 'next/navigation';
-import CVReviewerForm from '../components/CVReviewerForm';
+import CVReviewerForm from '../components/feedback/CVReviewerForm';
 
 export default function CVReviewerPage() {
     const router = useRouter();

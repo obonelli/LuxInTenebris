@@ -8,7 +8,7 @@ import {
     MenuItem,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import LoginButton from './LoginButton';
+import LoginButton from '../layout/LoginButton';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 

@@ -1,8 +1,8 @@
 'use client';
 
-import HeroSection from './components/HeroSection';
-import HowItWorksSection from './components/HowItWorksSection';
-import HeaderSection from './components/HeaderSection';
+import HeroSection from './components/sections/HeroSection';
+import HowItWorksSection from './components/sections/HowItWorksSection';
+import HeaderSection from './components/sections/HeaderSection';
 
 export default function Home() {
     return (
