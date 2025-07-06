@@ -9,6 +9,7 @@ import type { JWT } from 'next-auth/jwt';
 const prisma = new PrismaClient();
 
 export const authOptions: NextAuthOptions = {
+    debug: true,
     adapter: PrismaAdapter(prisma),
     providers: [
         GoogleProvider({
@@ -20,7 +21,13 @@ export const authOptions: NextAuthOptions = {
     session: { strategy: 'jwt' },
     callbacks: {
         async session({ session, token }: { session: Session; token: JWT }) {
-            if (session.user) session.user.id = token.sub!;
+            console.log('>>> SESSION CALLBACK');
+            console.log('Session:', session);
+            console.log('Token:', token);
+
+            if (session.user && token.sub) {
+                session.user.id = token.sub;
+            }
             return session;
         },
     },
