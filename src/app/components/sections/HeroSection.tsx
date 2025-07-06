@@ -1,15 +1,10 @@
 'use client';
 
-import { Box, Button, Container, Typography } from '@mui/material';
-import { useRouter } from 'next/navigation';
-
+import { Box, Container, Typography } from '@mui/material';
 export default function HeroSection() {
-    const router = useRouter();
 
     const baseColor = '#E4E4FF';
     const neonColor = '#7C4DFF';
-    const textGradient =
-        'linear-gradient(90deg,#E4E4FF 0%,#CBCBFF 50%,#E4E4FF 100%)';
 
     const title = 'Ignite Your Career in the Dark';
 
@@ -28,7 +23,6 @@ export default function HeroSection() {
             }}
         >
             <Container maxWidth="md" sx={{ textAlign: 'center' }}>
-                {/* Tagline */}
                 <Typography
                     variant="overline"
                     sx={{ color: neonColor, letterSpacing: 3, fontWeight: 700 }}
@@ -36,7 +30,7 @@ export default function HeroSection() {
                     LUX IN TENEBRIS
                 </Typography>
 
-                {/* Title desktop */}
+                {/* Desktop title */}
                 <Typography
                     component="h1"
                     variant="h2"
@@ -65,9 +59,16 @@ export default function HeroSection() {
                             {ch === ' ' ? '\u00A0' : ch}
                         </Box>
                     ))}
+                    {/* 🔥 al final de "Dark" */}
+                    <Box
+                        component="img"
+                        src="/icons/bolt.gif"
+                        alt="⚡"
+                        sx={{ width: 26, height: 26, ml: 1, position: 'relative', top: 5 }}
+                    />
                 </Typography>
 
-                {/* Title mobile */}
+                {/* Mobile title */}
                 <Typography
                     component="h1"
                     variant="h4"
@@ -91,18 +92,13 @@ export default function HeroSection() {
                     AI-powered insights, forged with passion and unstoppable resolve.
                 </Typography>
 
-                {/* CTA */}
+                {/* CTA - comentado por petición */}
+                {/*
                 <Button
                     size="large"
                     onClick={() => router.push('/cv-reviewer')}
-                    sx={{
-                        mt: 5,
-                        px: 5,
-                        py: 1.5,
-                        fontWeight: 700,
-                        fontSize: '1.05rem',
-                        textTransform: 'none',
-                        borderRadius: 3,
+                    sx={{ mt: 5, px: 5, py: 1.5, fontWeight: 700, fontSize: '1.05rem',
+                        textTransform: 'none', borderRadius: 3,
                         backgroundColor: 'rgba(255,255,255,0.06)',
                         border: `2px solid ${neonColor}`,
                         backdropFilter: 'blur(4px)',
@@ -114,20 +110,17 @@ export default function HeroSection() {
                         },
                     }}
                 >
-                    {/* Texto gradiente */}
                     <Box
                         component="span"
                         sx={{
                             mr: 1,
-                            background: textGradient,
+                            background: 'linear-gradient(90deg,#E4E4FF 0%,#CBCBFF 50%,#E4E4FF 100%)',
                             WebkitBackgroundClip: 'text',
                             color: 'transparent',
                         }}
                     >
                         Illuminate&nbsp;my&nbsp;Résumé
                     </Box>
-
-                    {/* Rayo animado (gif) */}
                     <Box
                         component="img"
                         src="/icons/bolt.gif"
@@ -135,6 +128,7 @@ export default function HeroSection() {
                         sx={{ width: 20, height: 20 }}
                     />
                 </Button>
+                */}
             </Container>
         </Box>
     );
