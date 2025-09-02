@@ -1,36 +1,134 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CV Reviewer with AI
 
-## Getting Started
+This project is a **Next.js 15** application designed to help users
+improve their resumes using **AI assistance**.\
+It allows candidates to upload or paste their CV, and the system
+automatically analyzes its content, providing feedback, improvements,
+and suggestions tailored for the tech industry.
 
-First, run the development server:
+------------------------------------------------------------------------
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🚀 Features
+
+-   **Resume Upload & Analysis**\
+    Users can upload a PDF/DOCX file or paste text directly into the
+    app.
+
+-   **AI Feedback Engine**\
+    Uses OpenAI integration to analyze resumes and suggest improvements
+    in:
+
+    -   Clarity and formatting
+    -   Technical skills alignment
+    -   Grammar and readability
+    -   Keywords for ATS (Applicant Tracking Systems)
+
+-   **Job-Oriented Suggestions**\
+    The system adapts suggestions based on job position and seniority
+    level.
+
+-   **Modern UI**\
+    Built with **Material UI (MUI)** and a dark mode--friendly design.\
+    Responsive layouts optimized for both desktop and mobile.
+
+-   **Authentication**\
+    Integrated with **NextAuth** to allow sign-in with Google.\
+    Personalized feedback and history saved per user.
+
+-   **API Routes**\
+    Custom `/api/analyze` endpoint to handle CV parsing and LLM
+    integration.
+
+------------------------------------------------------------------------
+
+## 🛠️ Tech Stack
+
+-   **Frontend**: Next.js 15 (App Router, React Server Components,
+    Suspense)\
+-   **Styling**: Material UI + Custom CSS\
+-   **Backend**: Next.js API Routes\
+-   **Database**: Prisma ORM + MySQL (extendable)\
+-   **Authentication**: NextAuth.js (Google provider)\
+-   **AI**: OpenAI API integration
+
+------------------------------------------------------------------------
+
+## 📦 Installation
+
+Clone the repository:
+
+``` bash
+git clone https://github.com/your-username/LuxInTenebris.git
+cd cv-reviewer
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Install dependencies:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+``` bash
+npm install
+# or
+yarn install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Start development server:
 
-## Learn More
+``` bash
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Then open <http://localhost:3000>.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+------------------------------------------------------------------------
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🔑 Environment Variables
 
-## Deploy on Vercel
+Create a `.env.local` file with:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```env
+NEXTAUTH_SECRET=your_secret
+GOOGLE_CLIENT_ID=your_client_id
+GOOGLE_CLIENT_SECRET=your_google_secret
+DATABASE_URL=mysql://user:password@localhost:3306/cv_reviewer
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Optional: only required if you want to enable AI-powered CV analysis
+OPENAI_API_KEY=your_openai_api_key
+
+------------------------------------------------------------------------
+
+## 📂 Project Structure
+
+    cv-reviewer/
+     ├─ app/                # App Router (pages, layouts, routes)
+     │   ├─ api/            # Internal API routes
+     │   ├─ components/     # Reusable UI components
+     │   └─ (auth, jobs)/   # Authentication and job-related routes
+     ├─ prisma/             # Prisma schema and migrations
+     ├─ public/             # Static assets
+     ├─ styles/             # Global styles
+     └─ README.md
+
+------------------------------------------------------------------------
+
+## 📄 Roadmap
+
+- [x] Basic resume upload & text analysis  
+- [x] AI integration for feedback  
+- [x] Export analyzed CV as PDF  
+- [x] Mobile support
+- [ ] User dashboard with CV history  
+- [ ] Multi-language support  
+- [ ] Admin panel for job insights  
+- [ ] Administrative module to create/manage new job postings  
+- [ ] Candidate testing module (practice exercises & assessments)  
+
+------------------------------------------------------------------------
+
+## 🌐 Demo
+
+You can test the live demo here: <https://www.luxintenebris.mx/>
+
+------------------------------------------------------------------------
+
+## 📜 License
+
+MIT License
