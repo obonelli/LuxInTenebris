@@ -177,7 +177,7 @@ export default function HeaderSection() {
                                             }}
                                             sx={{ '&:hover': { backgroundColor: 'rgba(124,77,255,0.2)' } }}
                                         >
-                                            Illuminate my Résumé
+                                            CV Reviewer
                                         </MenuItem>
                                     </Menu>
                                 </>
@@ -257,7 +257,7 @@ export default function HeaderSection() {
                                             router.push('/cv-reviewer');
                                         }}
                                     >
-                                        Services → Illuminate my Résumé
+                                        CV Reviewer
                                     </MenuItem>
                                 )}
                             </Menu>
