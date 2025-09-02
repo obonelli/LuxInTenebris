@@ -1,43 +1,33 @@
-# CV Reviewer with AI
+# Lux In Tenebris — AI Recruitment Platform
 
-This project is a **Next.js 15** application designed to help users
-improve their resumes using **AI assistance**.\
-It allows candidates to upload or paste their CV, and the system
-automatically analyzes its content, providing feedback, improvements,
-and suggestions tailored for the tech industry.
+This project is a **Next.js 15** application that serves as a modern **job board and recruitment system**, inspired by platforms like Computrabajo.  
+It connects candidates with open roles and supports recruiters with **AI-assisted insights** to improve the hiring process.
 
-------------------------------------------------------------------------
+---
 
 ## 🚀 Features
 
--   **Resume Upload & Analysis**\
-    Users can upload a PDF/DOCX file or paste text directly into the
-    app.
+- **Job Listings & Search**  
+  Browse and filter open positions by technology, seniority, working scheme, English level, and location.
 
--   **AI Feedback Engine**\
-    Uses OpenAI integration to analyze resumes and suggest improvements
-    in:
+- **AI-Powered Matching (Planned)**  
+  Smart matching engine that will leverage AI to connect candidate profiles with the most relevant opportunities.
 
-    -   Clarity and formatting
-    -   Technical skills alignment
-    -   Grammar and readability
-    -   Keywords for ATS (Applicant Tracking Systems)
+- **Global Talent Pool (Planned)**  
+  Candidate database with advanced filters to help recruiters identify top talent faster.
 
--   **Job-Oriented Suggestions**\
-    The system adapts suggestions based on job position and seniority
-    level.
+- **Technical Screening (Planned)**  
+  Automated candidate testing and feedback to validate skills efficiently.
 
--   **Modern UI**\
-    Built with **Material UI (MUI)** and a dark mode--friendly design.\
-    Responsive layouts optimized for both desktop and mobile.
+- **Modern UI**  
+  Built with **Material UI (MUI)** in dark mode, fully responsive and mobile-friendly.
 
--   **Authentication**\
-    Integrated with **NextAuth** to allow sign-in with Google.\
-    Personalized feedback and history saved per user.
+- **Authentication**  
+  Integrated with **NextAuth** for secure sign-in (Google).  
+  Enables personalized dashboards and candidate history.
 
--   **API Routes**\
-    Custom `/api/analyze` endpoint to handle CV parsing and LLM
-    integration.
+- **Scalable Backend**  
+  Powered by **Next.js API Routes + Prisma + MySQL**, ready for future integrations with ATS/HR systems.
 
 ------------------------------------------------------------------------
 
