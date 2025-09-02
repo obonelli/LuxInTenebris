@@ -1,32 +1,62 @@
 // src/lib/auth-options.ts
-import { PrismaClient } from '@prisma/client';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import GoogleProvider from 'next-auth/providers/google';
 import type { NextAuthOptions } from 'next-auth';
-import type { Session } from 'next-auth';
-import type { JWT } from 'next-auth/jwt';
+import { prisma } from '@/lib/prisma';
+import { UserRole } from '@prisma/client';
 
-const prisma = new PrismaClient();
+// Tipo que funciona en Prisma v4 y v5
+type Role = (typeof UserRole)[keyof typeof UserRole];
 
 export const authOptions: NextAuthOptions = {
     debug: false,
     adapter: PrismaAdapter(prisma),
+    session: { strategy: 'jwt' },
+    secret: process.env.NEXTAUTH_SECRET,
+
     providers: [
         GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID!,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            clientId:
+                process.env.GOOGLE_ID ||
+                process.env.GOOGLE_CLIENT_ID ||
+                '',
+            clientSecret:
+                process.env.GOOGLE_SECRET ||
+                process.env.GOOGLE_CLIENT_SECRET ||
+                '',
         }),
     ],
-    secret: process.env.NEXTAUTH_SECRET,
-    session: { strategy: 'jwt' },
-    callbacks: {
-        async session({ session, token }: { session: Session; token: JWT }) {
-            console.log('>>> SESSION CALLBACK');
-            console.log('Session:', session);
-            console.log('Token:', token);
 
-            if (session.user && token.sub) {
-                session.user.id = token.sub;
+    callbacks: {
+        async jwt({ token, user, trigger, session }) {
+            if (user?.id) {
+                token.id = user.id;
+                const dbUser = await prisma.user.findUnique({
+                    where: { id: user.id },
+                    select: { role: true },
+                });
+                token.role = (dbUser?.role as Role) ?? UserRole.CANDIDATE;
+            } else if ((!token.id || !token.role) && token.email) {
+                const dbUser = await prisma.user.findUnique({
+                    where: { email: token.email as string },
+                    select: { id: true, role: true },
+                });
+                if (dbUser) {
+                    token.id = dbUser.id;
+                    token.role = dbUser.role as Role;
+                }
+            }
+
+            if (trigger === 'update' && session?.user?.role) {
+                token.role = session.user.role as Role;
+            }
+            return token;
+        },
+
+        async session({ session, token }) {
+            if (session.user) {
+                session.user.id = (token.id as string) ?? session.user.id!;
+                session.user.role = (token.role as Role) ?? UserRole.CANDIDATE;
             }
             return session;
         },

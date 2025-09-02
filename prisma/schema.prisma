@@ -7,15 +7,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  CANDIDATE
+  CLIENT
+  SUPERADMIN
+}
+
 model User {
-  id            String   @id @default(cuid())
+  id            String     @id @default(cuid())
   name          String?
-  email         String?  @unique
+  email         String?    @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
-
+  role          UserRole   @default(CANDIDATE)
   cvAnalyses    CvAnalysis[]
 }
 
@@ -61,4 +67,71 @@ model CvAnalysis {
   userNote    String?
   feedback    String   @db.LongText
   createdAt   DateTime @default(now())
+}
+
+/* =======================
+   Jobs board (nuevo)
+   ======================= */
+
+enum Seniority {
+  INTERN
+  JUNIOR
+  MID
+  SENIOR
+  STAFF
+  LEAD
+  PRINCIPAL
+}
+
+enum WorkingScheme {
+  ONSITE
+  HYBRID
+  REMOTE
+}
+
+enum EnglishLevel {
+  A1
+  A2
+  B1
+  B2
+  C1
+  C2
+}
+
+model Technology {
+  id        Int            @id @default(autoincrement())
+  name      String         @unique
+  slug      String         @unique
+  jobs      JobTechnology[]
+  createdAt DateTime       @default(now())
+}
+
+model JobPosition {
+  id            String           @id @default(cuid())
+  title         String
+  description   String           @db.Text
+  salaryMin     Int?
+  salaryMax     Int?
+  currency      String           @default("USD")
+  seniority     Seniority
+  workingScheme WorkingScheme
+  englishLevel  EnglishLevel?
+  location      String?
+  provider      String?
+  isActive      Boolean          @default(true)
+  technologies  JobTechnology[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([title])
+  @@index([seniority, workingScheme, englishLevel])
+}
+
+model JobTechnology {
+  jobId        String
+  technologyId Int
+  job          JobPosition  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  technology   Technology   @relation(fields: [technologyId], references: [id], onDelete: Cascade)
+
+  @@id([jobId, technologyId])
 }
