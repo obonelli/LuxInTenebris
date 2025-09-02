@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// Avoid instantiating at module scope without a key
+// Will be created inside POST handler if the key exists
 const DEFAULT_MODEL = process.env.OPENAI_MODEL ?? 'gpt-4o';
 
-// ─── Helper para hora local (CST) ───────────────────────────────────────
+// ─── Local time helper (CST) ───────────────────────────────────────────
 const getGreeting = () => {
     const hour = Number(
         new Date().toLocaleString('en-US', {
@@ -18,15 +19,15 @@ const getGreeting = () => {
     return 'Good evening';
 };
 
-// ─── Helper OpenAI ──────────────────────────────────────────────────────
-const chatWith = (model: string, prompt: string) =>
+// ─── OpenAI helper ─────────────────────────────────────────────────────
+const chatWith = (openai: OpenAI, model: string, prompt: string) =>
     openai.chat.completions.create({
         model,
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.7,
     });
 
-// ─── POST /api/analyze ──────────────────────────────────────────────────
+// ─── POST /api/analyze ─────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
     try {
         const { cvText, targetRole, userNote } = await req.json();
@@ -38,7 +39,22 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Nota extra del usuario (opcional)
+        // Graceful handling if API key is missing
+        const apiKey = process.env.OPENAI_API_KEY;
+        if (!apiKey) {
+            return NextResponse.json(
+                {
+                    ok: false,
+                    reason: 'AI analysis disabled: set OPENAI_API_KEY to enable feedback.',
+                    suggestions: [],
+                },
+                { status: 200 },
+            );
+        }
+
+        const openai = new OpenAI({ apiKey });
+
+        // Extra user note (optional)
         const noteSection = userNote
             ? `
 The mentee adds the following context (address this first):
@@ -89,29 +105,35 @@ ${cvText}
 ------------
 `.trim();
 
-        // ─── Llamada OpenAI ────────────────────────────────────────────────
+        // ─── OpenAI call ───────────────────────────────────────────────────
         try {
-            const completion = await chatWith(DEFAULT_MODEL, prompt);
+            const completion = await chatWith(openai, DEFAULT_MODEL, prompt);
             const feedback = completion.choices[0]?.message?.content ?? '';
             return NextResponse.json({ feedback });
         } catch (err: unknown) {
             const e = err as { status?: number; code?: string };
 
-            // Downgrade automático si se agota la cuota
+            // Automatic downgrade if quota is exhausted
             if (
                 (e.status === 429 || e.code === 'insufficient_quota') &&
                 DEFAULT_MODEL !== 'gpt-3.5-turbo'
             ) {
-                const fallback = await chatWith('gpt-3.5-turbo', prompt);
+                const fallback = await chatWith(openai, 'gpt-3.5-turbo', prompt);
                 const feedback = fallback.choices[0]?.message?.content ?? '';
                 return NextResponse.json({ feedback, downgraded: true });
             }
 
             console.error('[OpenAI]', err);
-            return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+            return NextResponse.json(
+                { error: 'Internal Server Error' },
+                { status: 500 },
+            );
         }
     } catch (parseErr) {
         console.error('[analyze] bad body', parseErr);
-        return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+        return NextResponse.json(
+            { error: 'Invalid request body' },
+            { status: 400 },
+        );
     }
 }
