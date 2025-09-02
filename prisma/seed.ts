@@ -23,9 +23,8 @@ async function ensureTechs(names: string[]) {
 
 async function main() {
     /* =======================
-       LIMPIEZA FORZADA
+       FORCED CLEANING
        ======================= */
-    // Borra TODAS las vacantes para evitar que queden registros viejos (como "Ryscode")
     await prisma.jobPosition.deleteMany({});
 
     /* ========= 1) Sr Fullstack Developer — NebulaWorks ========= */
