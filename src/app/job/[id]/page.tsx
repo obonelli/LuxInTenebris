@@ -223,7 +223,7 @@ export default function JobDetailPage() {
                                         ))}
                                     </Box>
                                 ) : (
-                                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                                         {job.provider && (
                                             <Chip
                                                 label={job.provider}
@@ -240,7 +240,10 @@ export default function JobDetailPage() {
                                                 label={salary}
                                                 size="small"
                                                 icon={<PaymentsRoundedIcon />}
-                                                sx={{ bgcolor: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.08)' }}
+                                                sx={{
+                                                    bgcolor: 'rgba(255,255,255,.06)',
+                                                    border: '1px solid rgba(255,255,255,.08)',
+                                                }}
                                             />
                                         )}
                                         {job.technologies.map((t) => (
@@ -248,10 +251,13 @@ export default function JobDetailPage() {
                                                 key={t.id}
                                                 size="small"
                                                 label={t.name}
-                                                sx={{ bgcolor: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.08)' }}
+                                                sx={{
+                                                    bgcolor: 'rgba(255,255,255,.06)',
+                                                    border: '1px solid rgba(255,255,255,.08)',
+                                                }}
                                             />
                                         ))}
-                                    </Stack>
+                                    </Box>
                                 )}
 
                                 {/* External provider link if it looks like a URL */}
