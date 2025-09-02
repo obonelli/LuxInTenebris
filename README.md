@@ -123,9 +123,10 @@ OPENAI_API_KEY=your_openai_api_key
 
 ------------------------------------------------------------------------
 
+``` bash
 ## 🌐 Demo
-
-You can test the live demo here: [https://www.luxintenebris.mx](https://www.luxintenebris.mx)
+```
+You can test the live demo here: <https://www.luxintenebris.mx>
 
 ------------------------------------------------------------------------
 
