@@ -1,12 +1,20 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function GET(_: Request, ctx: { params: { id: string } }) {
+export async function GET(
+    _: Request,
+    ctx: { params: Promise<{ id: string }> }
+) {
+    const { id } = await ctx.params;
+
     const job = await prisma.jobPosition.findUnique({
-        where: { id: ctx.params.id },
+        where: { id },
         include: { technologies: { include: { technology: true } } },
     });
-    if (!job) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    if (!job) {
+        return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
 
     return NextResponse.json({
         id: job.id,
@@ -20,7 +28,11 @@ export async function GET(_: Request, ctx: { params: { id: string } }) {
         englishLevel: job.englishLevel,
         location: job.location,
         provider: job.provider,
-        technologies: job.technologies.map(t => ({ id: t.technologyId, name: t.technology.name, slug: t.technology.slug })),
+        technologies: job.technologies.map((t) => ({
+            id: t.technologyId,
+            name: t.technology.name,
+            slug: t.technology.slug,
+        })),
         createdAt: job.createdAt,
     });
 }

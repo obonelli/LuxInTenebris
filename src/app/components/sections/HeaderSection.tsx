@@ -14,13 +14,13 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import LoginButton from '../layout/LoginButton';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signIn, signOut } from 'next-auth/react';
 
 const HEADER_HEIGHT = { xs: 72, md: 64 };
 
 export default function HeaderSection() {
     const router = useRouter();
-    const { status } = useSession();
+    const { data: session, status } = useSession();
     const isAuthed = status === 'authenticated';
 
     const [servicesAnchor, setServicesAnchor] = useState<null | HTMLElement>(null);
@@ -47,7 +47,7 @@ export default function HeaderSection() {
 
     return (
         <>
-            {/* Header fijo */}
+            {/* Fixed header */}
             <Box
                 component="header"
                 sx={{
@@ -89,7 +89,7 @@ export default function HeaderSection() {
                             />
                         </Box>
 
-                        {/* Acciones — Desktop */}
+                        {/* Actions — Desktop */}
                         <Box
                             sx={{
                                 display: { xs: 'none', md: 'flex' },
@@ -183,6 +183,7 @@ export default function HeaderSection() {
                                 </>
                             )}
 
+                            {/* Login/Logout desktop (existing component) */}
                             <LoginButton />
                         </Box>
 
@@ -194,28 +195,50 @@ export default function HeaderSection() {
                                 gap: 1,
                             }}
                         >
-                            {/* Botón de login compacto (evita desbordar) */}
-                            <Button
-                                size="small"
-                                variant="outlined"
-                                onClick={() => router.push('/api/auth/signin')}
-                                sx={{
-                                    color: 'primary.main',
-                                    borderColor: 'primary.main',
-                                    borderRadius: 2,
-                                    px: 1.25,
-                                    py: 0.25,
-                                    fontWeight: 700,
-                                    fontSize: '.8rem',
-                                    textTransform: 'none',
-                                    whiteSpace: 'nowrap',
-                                    minWidth: 'auto',
-                                }}
-                            >
-                                Sign in
-                            </Button>
+                            {/* Sign in / Sign out according to session */}
+                            {status === 'authenticated' ? (
+                                <Button
+                                    size="small"
+                                    variant="outlined"
+                                    onClick={() => signOut({ callbackUrl: '/' })}
+                                    sx={{
+                                        color: 'primary.main',
+                                        borderColor: 'primary.main',
+                                        borderRadius: 2,
+                                        px: 1.25,
+                                        py: 0.25,
+                                        fontWeight: 700,
+                                        fontSize: '.8rem',
+                                        textTransform: 'none',
+                                        whiteSpace: 'nowrap',
+                                        minWidth: 'auto',
+                                    }}
+                                >
+                                    Sign out
+                                </Button>
+                            ) : (
+                                <Button
+                                    size="small"
+                                    variant="outlined"
+                                    onClick={() => signIn()}
+                                    sx={{
+                                        color: 'primary.main',
+                                        borderColor: 'primary.main',
+                                        borderRadius: 2,
+                                        px: 1.25,
+                                        py: 0.25,
+                                        fontWeight: 700,
+                                        fontSize: '.8rem',
+                                        textTransform: 'none',
+                                        whiteSpace: 'nowrap',
+                                        minWidth: 'auto',
+                                    }}
+                                >
+                                    Sign in
+                                </Button>
+                            )}
 
-                            {/* Menú colapsado (Open Roles / Services) */}
+                            {/* Collapsed menu (Open Roles / Services / Auth) */}
                             <IconButton
                                 onClick={handleMobileClick}
                                 aria-label="open menu"
@@ -258,6 +281,27 @@ export default function HeaderSection() {
                                         }}
                                     >
                                         CV Reviewer
+                                    </MenuItem>
+                                )}
+
+                                {/* Opción de auth dentro del menú (extra) */}
+                                {isAuthed ? (
+                                    <MenuItem
+                                        onClick={() => {
+                                            closeMobile();
+                                            signOut({ callbackUrl: '/' });
+                                        }}
+                                    >
+                                        Sign out{session?.user?.name ? ` (${session.user.name})` : ''}
+                                    </MenuItem>
+                                ) : (
+                                    <MenuItem
+                                        onClick={() => {
+                                            closeMobile();
+                                            signIn();
+                                        }}
+                                    >
+                                        Sign in
                                     </MenuItem>
                                 )}
                             </Menu>

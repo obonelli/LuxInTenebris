@@ -1,10 +1,27 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Box, Container, Typography, CircularProgress } from '@mui/material';
 
 export default function RedirectPage() {
+    return (
+        <Suspense
+            fallback={
+                <Container maxWidth="sm" sx={{ py: 10, textAlign: 'center' }}>
+                    <CircularProgress />
+                    <Typography sx={{ mt: 2, color: 'rgba(235,235,255,0.8)' }}>
+                        Redirecting…
+                    </Typography>
+                </Container>
+            }
+        >
+            <RedirectClient />
+        </Suspense>
+    );
+}
+
+function RedirectClient() {
     const router = useRouter();
     const params = useSearchParams();
 

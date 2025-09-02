@@ -3,8 +3,22 @@
 import { useState } from 'react';
 import { Box, Button, Container, Grid, MenuItem, Select, Stack, TextField, Typography } from '@mui/material';
 
+type FormState = {
+    title: string;
+    description: string;
+    salaryMin: string;
+    salaryMax: string;
+    currency: string;
+    seniority: string;
+    workingScheme: string;
+    englishLevel: string;
+    location: string;
+    provider: string;
+    technologies: string;
+};
+
 export default function AdminJobs() {
-    const [form, setForm] = useState({
+    const [form, setForm] = useState<FormState>({
         title: '',
         description: '',
         salaryMin: '',
@@ -14,11 +28,12 @@ export default function AdminJobs() {
         workingScheme: 'REMOTE',
         englishLevel: 'C1',
         location: 'LATAM',
-        provider: 'Ryscode',
+        provider: 'Riot Games',
         technologies: 'react,typescript',
     });
 
-    const onChange = (k: string, v: any) => setForm(s => ({ ...s, [k]: v }));
+    const onChange = <K extends keyof FormState>(k: K, v: FormState[K]) =>
+        setForm(s => ({ ...s, [k]: v }));
 
     const submit = async () => {
         const res = await fetch('/api/jobs', {

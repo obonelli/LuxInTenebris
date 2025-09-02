@@ -1,10 +1,5 @@
 // prisma/seed.ts
-import {
-    PrismaClient,
-    Seniority,
-    WorkingScheme,
-    EnglishLevel,
-} from '@prisma/client';
+import { PrismaClient, Seniority, WorkingScheme, EnglishLevel } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -14,21 +9,27 @@ const slugify = (s: string) =>
 async function upsertTech(name: string) {
     const slug = slugify(name);
     return prisma.technology.upsert({
-        where: { name },          // ← usar name evita el P2002
-        update: { slug },         // si existe, solo refresca el slug
+        where: { name },
+        update: { slug },
         create: { name, slug },
     });
 }
 
 async function ensureTechs(names: string[]) {
-    const uniques = Array.from(new Set(names)); // evita duplicados
+    const uniques = Array.from(new Set(names));
     const techs = await Promise.all(uniques.map(upsertTech));
     return techs.map((t) => ({ technologyId: t.id }));
 }
 
 async function main() {
-    // ========= Sr Fullstack Developer (Ryscode) =========
-    const seniorTechs = await ensureTechs([
+    /* =======================
+       LIMPIEZA FORZADA
+       ======================= */
+    // Borra TODAS las vacantes para evitar que queden registros viejos (como "Ryscode")
+    await prisma.jobPosition.deleteMany({});
+
+    /* ========= 1) Sr Fullstack Developer — NebulaWorks ========= */
+    const techsNebula = await ensureTechs([
         'IAM',
         '.NET',
         'TypeScript',
@@ -48,12 +49,12 @@ async function main() {
     ]);
 
     await prisma.jobPosition.upsert({
-        where: { id: 'seed-rys-sr-fullstack' },
+        where: { id: 'seed-nebula-sr-fullstack' },
         update: {},
         create: {
-            id: 'seed-rys-sr-fullstack',
+            id: 'seed-nebula-sr-fullstack',
             title: 'Sr Fullstack Developer',
-            provider: 'Ryscode',
+            provider: 'NebulaWorks',
             location: 'LATAM',
             workingScheme: WorkingScheme.REMOTE,
             seniority: Seniority.SENIOR,
@@ -63,60 +64,31 @@ async function main() {
             salaryMax: 5500,
             isActive: true,
             description: `
-**Company**: Ryscode  
-**Salary**: $5,500 USD  
-**Link**: https://www.ryscode.com.mx/  
+**Company**: NebulaWorks  
 **Job Type**: Full-Time  
-**Contract Term**: fixed-term  
-**Years of Experience**: 7–8 years
+**Salary**: $5,500 USD  
+**Experience**: 7–8 years
 
-## Job Overview
-Sr. Full Stack Engineer to work with the team to create a suite of applications and tools for internal and external customers.
+## Overview
+Ownership de una suite de aplicaciones para clientes internos/externos.
 
-## Responsibilities
-- Implement authentication and authorization using IAM platforms (Auth0, KeyCloak, Okta, Azure AD).
-- Integrate apps with OAuth 2.0, OpenID Connect y otros protocolos de identidad.
-- Desarrollar y mantener flujos de usuario seguros: registro, login, password reset, MFA.
-- Aplicar RBAC y permisos granulares.
-- Código limpio, testeable, seguro y escalable.
-
-## Qualifications — Must have
-- IAM con Auth0/KeyCloak/Okta/Azure AD.
-- OAuth 2.0, OpenID Connect.
-- User management (registro, login, reset, MFA).
-- RBAC.
-- 10+ años en web apps (fullstack).
-- TypeScript/JavaScript; React o Vue.
-- REST con .NET/C# (preferido).
-
-## Nice to have
-- .NET Core / .NET 5/6.
-- SQL Server y NoSQL.
-- Unit tests fullstack.
-- Pipelines modernas (Babel, Webpack, NPM).
-- Responsive, Node.js, microservicios.
-- Git, VS Code/Visual Studio, Scrum/Agile.
-
-## About the Company
-Recruitment Agency Specialized in IT and Digital Marketing.
-
-## Interview Stages
-HR → Technical Interview → Technical Assessment → Offer.
+## Must Have
+IAM (Auth0/Keycloak/Okta/Azure AD), OAuth 2.0, OIDC, MFA, RBAC, React + TypeScript, .NET/C#.
       `.trim(),
-            technologies: { create: seniorTechs },
+            technologies: { create: techsNebula },
         },
     });
 
-    // ========= Mid React Developer (Ryscode) =========
-    const midTechs = await ensureTechs(['React', 'TypeScript', 'MUI']);
+    /* ========= 2) Mid React Developer — Orion Talent ========= */
+    const techsOrion = await ensureTechs(['React', 'TypeScript', 'MUI']);
 
     await prisma.jobPosition.upsert({
-        where: { id: 'seed-rys-mid-react' },
+        where: { id: 'seed-orion-mid-react' },
         update: {},
         create: {
-            id: 'seed-rys-mid-react',
+            id: 'seed-orion-mid-react',
             title: 'Mid React Developer',
-            provider: 'Ryscode',
+            provider: 'Orion Talent',
             location: 'Mexico City',
             workingScheme: WorkingScheme.HYBRID,
             seniority: Seniority.MID,
@@ -126,22 +98,180 @@ HR → Technical Interview → Technical Assessment → Offer.
             salaryMax: 4000,
             isActive: true,
             description: `
+**Company**: Orion Talent  
 **Job Type**: Full-Time  
-**English Level**: B2  
 **Salary (USD)**: $3,000–$4,000
 
-## Job Overview
-Work on modern UI with MUI and React.
-
-## Must Have
-- React, TypeScript.
-- MUI (Material UI).
+## Overview
+Construcción de UI modernas con React + MUI en equipo híbrido.
       `.trim(),
-            technologies: { create: midTechs },
+            technologies: { create: techsOrion },
         },
     });
 
-    console.log('✅ Seed completado');
+    /* ========= 3) Backend Engineer — LunarSoft ========= */
+    const techsLunar = await ensureTechs([
+        'Node.js',
+        'NestJS',
+        'PostgreSQL',
+        'Docker',
+        'AWS',
+        'TypeScript',
+        'Redis',
+        'REST',
+        'GraphQL',
+    ]);
+
+    await prisma.jobPosition.upsert({
+        where: { id: 'seed-lunar-backend' },
+        update: {},
+        create: {
+            id: 'seed-lunar-backend',
+            title: 'Backend Engineer',
+            provider: 'LunarSoft',
+            location: 'Remote',
+            workingScheme: WorkingScheme.REMOTE,
+            seniority: Seniority.MID,
+            englishLevel: EnglishLevel.B2,
+            currency: 'USD',
+            salaryMin: 4500,
+            salaryMax: 6000,
+            isActive: true,
+            description: `
+**Company**: LunarSoft  
+**Job Type**: Full-Time
+
+## Overview
+Servicios de backend escalables con Node.js/NestJS sobre AWS.
+
+## Must Have
+Node.js, NestJS, PostgreSQL, Docker, AWS, TypeScript, cachés (Redis), APIs REST/GraphQL.
+      `.trim(),
+            technologies: { create: techsLunar },
+        },
+    });
+
+    /* ========= 4) DevOps Engineer — Atlas Systems ========= */
+    const techsAtlas = await ensureTechs([
+        'AWS',
+        'Terraform',
+        'Kubernetes',
+        'Helm',
+        'CI/CD',
+        'GitHub Actions',
+        'Prometheus',
+        'Grafana',
+        'Linux',
+        'Docker',
+    ]);
+
+    await prisma.jobPosition.upsert({
+        where: { id: 'seed-atlas-devops' },
+        update: {},
+        create: {
+            id: 'seed-atlas-devops',
+            title: 'DevOps Engineer',
+            provider: 'Atlas Systems',
+            location: 'Remote (Americas)',
+            workingScheme: WorkingScheme.REMOTE,
+            seniority: Seniority.SENIOR,
+            englishLevel: EnglishLevel.C1,
+            currency: 'USD',
+            salaryMin: 6000,
+            salaryMax: 7000,
+            isActive: true,
+            description: `
+**Company**: Atlas Systems
+
+## Overview
+Plataformas en AWS con IaC, despliegues y observabilidad end-to-end.
+
+## Must Have
+Terraform, Kubernetes/Helm, CI/CD (GitHub Actions), Docker, monitoreo (Prometheus/Grafana).
+      `.trim(),
+            technologies: { create: techsAtlas },
+        },
+    });
+
+    /* ========= 5) Mobile Engineer (React Native) — QuantumTech ========= */
+    const techsQuantum = await ensureTechs([
+        'React Native',
+        'TypeScript',
+        'GraphQL',
+        'Expo',
+        'iOS',
+        'Android',
+        'Jest',
+    ]);
+
+    await prisma.jobPosition.upsert({
+        where: { id: 'seed-quantum-mobile' },
+        update: {},
+        create: {
+            id: 'seed-quantum-mobile',
+            title: 'Mobile Engineer (React Native)',
+            provider: 'QuantumTech',
+            location: 'Buenos Aires',
+            workingScheme: WorkingScheme.HYBRID,
+            seniority: Seniority.MID,
+            englishLevel: EnglishLevel.B2,
+            currency: 'USD',
+            salaryMin: 3500,
+            salaryMax: 5000,
+            isActive: true,
+            description: `
+**Company**: QuantumTech
+
+## Overview
+Apps móviles cross-platform con React Native + GraphQL.
+
+## Must Have
+React Native, TypeScript, GraphQL, testing (Jest), publicación iOS/Android.
+      `.trim(),
+            technologies: { create: techsQuantum },
+        },
+    });
+
+    /* ========= 6) Data Engineer — NovaData ========= */
+    const techsNova = await ensureTechs([
+        'Python',
+        'Apache Spark',
+        'Airflow',
+        'GCP',
+        'BigQuery',
+        'Dataflow',
+        'dbt',
+    ]);
+
+    await prisma.jobPosition.upsert({
+        where: { id: 'seed-novadata-data-eng' },
+        update: {},
+        create: {
+            id: 'seed-novadata-data-eng',
+            title: 'Data Engineer',
+            provider: 'NovaData',
+            location: 'São Paulo',
+            workingScheme: WorkingScheme.ONSITE,
+            seniority: Seniority.SENIOR,
+            englishLevel: EnglishLevel.B2,
+            currency: 'USD',
+            salaryMin: 6000,
+            salaryMax: 8000,
+            isActive: true,
+            description: `
+**Company**: NovaData
+
+## Overview
+Pipelines batch/streaming en GCP (BigQuery, Dataflow) con Airflow y Spark.
+
+## Must Have
+Python, Spark, Airflow, GCP/BigQuery, modelado de datos, orquestación y dbt.
+      `.trim(),
+            technologies: { create: techsNova },
+        },
+    });
+
+    console.log('✅ Seed completado: 6 ofertas creadas y limpieza aplicada.');
 }
 
 main()
