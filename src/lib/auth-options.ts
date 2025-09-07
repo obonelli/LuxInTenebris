@@ -5,7 +5,7 @@ import type { NextAuthOptions } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { UserRole } from '@prisma/client';
 
-// Tipo que funciona en Prisma v4 y v5
+// Tipo para mapear el enum UserRole de Prisma
 type Role = (typeof UserRole)[keyof typeof UserRole];
 
 export const authOptions: NextAuthOptions = {
@@ -29,6 +29,7 @@ export const authOptions: NextAuthOptions = {
 
     callbacks: {
         async jwt({ token, user, trigger, session }) {
+            // Caso: primera vez (user existe)
             if (user?.id) {
                 token.id = user.id;
                 const dbUser = await prisma.user.findUnique({
@@ -36,7 +37,9 @@ export const authOptions: NextAuthOptions = {
                     select: { role: true },
                 });
                 token.role = (dbUser?.role as Role) ?? UserRole.CANDIDATE;
-            } else if ((!token.id || !token.role) && token.email) {
+            }
+            // Caso: token ya existía pero le faltaba id/role
+            else if ((!token.id || !token.role) && token.email) {
                 const dbUser = await prisma.user.findUnique({
                     where: { email: token.email as string },
                     select: { id: true, role: true },
@@ -47,9 +50,11 @@ export const authOptions: NextAuthOptions = {
                 }
             }
 
+            // Caso: actualización explícita de la sesión
             if (trigger === 'update' && session?.user?.role) {
                 token.role = session.user.role as Role;
             }
+
             return token;
         },
 

@@ -1,11 +1,12 @@
+// src/app/api/analyze/route.ts
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-options';
 import OpenAI from 'openai';
+import { saveCVHistory } from '@/lib/cvHistory';
 
-// Avoid instantiating at module scope without a key
-// Will be created inside POST handler if the key exists
 const DEFAULT_MODEL = process.env.OPENAI_MODEL ?? 'gpt-4o';
 
-// ─── Local time helper (CST) ───────────────────────────────────────────
 const getGreeting = () => {
     const hour = Number(
         new Date().toLocaleString('en-US', {
@@ -19,7 +20,6 @@ const getGreeting = () => {
     return 'Good evening';
 };
 
-// ─── OpenAI helper ─────────────────────────────────────────────────────
 const chatWith = (openai: OpenAI, model: string, prompt: string) =>
     openai.chat.completions.create({
         model,
@@ -27,9 +27,19 @@ const chatWith = (openai: OpenAI, model: string, prompt: string) =>
         temperature: 0.7,
     });
 
-// ─── POST /api/analyze ─────────────────────────────────────────────────
+function extractSection(label: string, text: string) {
+    const rg = new RegExp(`${label}\\s*:\\s*([\\s\\S]*?)(\\n\\n|$)`, 'i');
+    const m = text.match(rg);
+    return m?.[1]?.trim();
+}
+
 export async function POST(req: NextRequest) {
     try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const { cvText, targetRole, userNote } = await req.json();
 
         if (!cvText || !targetRole) {
@@ -39,7 +49,6 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Graceful handling if API key is missing
         const apiKey = process.env.OPENAI_API_KEY;
         if (!apiKey) {
             return NextResponse.json(
@@ -54,19 +63,12 @@ export async function POST(req: NextRequest) {
 
         const openai = new OpenAI({ apiKey });
 
-        // Extra user note (optional)
         const noteSection = userNote
-            ? `
-The mentee adds the following context (address this first):
-"""
-${userNote}
-"""
-`
+            ? `\nThe mentee adds the following context (address this first):\n"""\n${userNote}\n"""\n`
             : '';
 
         const greeting = getGreeting();
 
-        // ─── Prompt v5 ─────────────────────────────────────────────────────
         const prompt = `
 You are **Coach Aurora**, a seasoned career mentor with 15+ years of experience, known for honest yet encouraging feedback.
 
@@ -105,35 +107,61 @@ ${cvText}
 ------------
 `.trim();
 
-        // ─── OpenAI call ───────────────────────────────────────────────────
         try {
             const completion = await chatWith(openai, DEFAULT_MODEL, prompt);
             const feedback = completion.choices[0]?.message?.content ?? '';
-            return NextResponse.json({ feedback });
-        } catch (err: unknown) {
-            const e = err as { status?: number; code?: string };
 
-            // Automatic downgrade if quota is exhausted
+            const summary =
+                extractSection('Brief Snapshot', feedback) ??
+                extractSection('Brief snapshot', feedback) ??
+                null;
+            const motivationalClose =
+                extractSection('Motivational Close', feedback) ??
+                extractSection('Motivational close', feedback) ??
+                null;
+
+            await saveCVHistory({
+                userId: session.user.id as string,
+                summary,
+                motivationalClose,
+                rawText: feedback,
+                source: 'api.analyze',
+            });
+
+            return NextResponse.json({ feedback }, { status: 200 });
+        } catch (err: any) {
             if (
-                (e.status === 429 || e.code === 'insufficient_quota') &&
+                (err?.status === 429 || err?.code === 'insufficient_quota') &&
                 DEFAULT_MODEL !== 'gpt-3.5-turbo'
             ) {
                 const fallback = await chatWith(openai, 'gpt-3.5-turbo', prompt);
                 const feedback = fallback.choices[0]?.message?.content ?? '';
-                return NextResponse.json({ feedback, downgraded: true });
+
+                const summary =
+                    extractSection('Brief Snapshot', feedback) ??
+                    extractSection('Brief snapshot', feedback) ??
+                    null;
+                const motivationalClose =
+                    extractSection('Motivational Close', feedback) ??
+                    extractSection('Motivational close', feedback) ??
+                    null;
+
+                await saveCVHistory({
+                    userId: session.user.id as string,
+                    summary,
+                    motivationalClose,
+                    rawText: feedback,
+                    source: 'api.analyze(downgraded)',
+                });
+
+                return NextResponse.json({ feedback, downgraded: true }, { status: 200 });
             }
 
             console.error('[OpenAI]', err);
-            return NextResponse.json(
-                { error: 'Internal Server Error' },
-                { status: 500 },
-            );
+            return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
         }
     } catch (parseErr) {
         console.error('[analyze] bad body', parseErr);
-        return NextResponse.json(
-            { error: 'Invalid request body' },
-            { status: 400 },
-        );
+        return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
 }
