@@ -34,8 +34,10 @@ export default function CVReviewerHistory() {
                 if (!res.ok) throw new Error('Failed to fetch history');
                 const data = await res.json();
                 setItems(data.items ?? []);
-            } catch (err: any) {
-                setError(err.message);
+            } catch (err: unknown) {
+                if (err instanceof Error) {
+                    setError(err.message);
+                }
             } finally {
                 setLoading(false);
             }

@@ -1,8 +1,13 @@
 // src/app/analyze/route.ts
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-options';        // ← cambio clave
+import { authOptions } from '@/lib/auth-options';
 import { saveCVHistory } from '@/lib/cvHistory';
+
+type AnalyzePayload = {
+    summary?: string;
+    motivationalClose?: string
+};
 
 type AnalyzeResult = {
     summary: string;
@@ -10,7 +15,7 @@ type AnalyzeResult = {
     fullText: string;
 };
 
-async function runAnalysis(payload: any): Promise<AnalyzeResult> {
+async function runAnalysis(payload: AnalyzePayload): Promise<AnalyzeResult> {
     const summary = payload?.summary ?? 'Key improvements...';
     const motivationalClose = payload?.motivationalClose ?? 'Keep pushing forward.';
     const fullText = `• Summary: ${summary}\n\nMotivational Close:\n${motivationalClose}`;

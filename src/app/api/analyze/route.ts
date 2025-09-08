@@ -7,6 +7,19 @@ import { saveCVHistory } from '@/lib/cvHistory';
 
 const DEFAULT_MODEL = process.env.OPENAI_MODEL ?? 'gpt-4o';
 
+type OpenAIError = {
+    status?: number;
+    code?: string
+};
+
+function isOpenAIError(err: unknown): err is OpenAIError {
+    return (
+        typeof err === 'object' &&
+        err !== null &&
+        ('status' in err || 'code' in err)
+    );
+}
+
 const getGreeting = () => {
     const hour = Number(
         new Date().toLocaleString('en-US', {
@@ -129,9 +142,10 @@ ${cvText}
             });
 
             return NextResponse.json({ feedback }, { status: 200 });
-        } catch (err: any) {
+        } catch (err: unknown) {
             if (
-                (err?.status === 429 || err?.code === 'insufficient_quota') &&
+                isOpenAIError(err) &&
+                (err.status === 429 || err.code === 'insufficient_quota') &&
                 DEFAULT_MODEL !== 'gpt-3.5-turbo'
             ) {
                 const fallback = await chatWith(openai, 'gpt-3.5-turbo', prompt);
