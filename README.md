@@ -105,7 +105,7 @@ OPENAI_API_KEY=your_openai_api_key
 - [x] AI integration for feedback  
 - [x] Export analyzed CV as PDF  
 - [x] Mobile support
-- [ ] User dashboard with CV history  
+- [x] User dashboard with CV history — **v1 released Sep 7, 2025**
 - [ ] Multi-language support  
 - [ ] Admin panel for job insights  
 - [ ] Administrative module to create/manage new job postings  

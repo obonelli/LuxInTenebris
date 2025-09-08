@@ -3,13 +3,15 @@
 import { useEffect, useState } from 'react';
 import {
     Box,
-    Card,
-    CardContent,
     Typography,
     CircularProgress,
     Alert,
     Button,
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 type CVHistoryItem = {
     id: string;
@@ -53,23 +55,32 @@ export default function CVReviewerHistory() {
     }
 
     return (
-        <Box display="flex" flexDirection="column" gap={2}>
+        <Box display="flex" flexDirection="column" gap={1}>
             {items.map((item) => (
-                <Card
+                <Accordion
                     key={item.id}
-                    variant="outlined"
                     sx={{
                         backgroundColor: 'rgba(255,255,255,0.04)',
-                        borderColor: 'rgba(255,255,255,0.1)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        '&:before': { display: 'none' }, // quita la línea divisoria
                     }}
                 >
-                    <CardContent>
-                        <Typography variant="caption" color="text.secondary">
+                    <AccordionSummary
+                        expandIcon={<ExpandMoreIcon />}
+                        sx={{
+                            minHeight: 36,
+                            '& .MuiAccordionSummary-content': {
+                                margin: 0,
+                            },
+                        }}
+                    >
+                        <Typography variant="body2" color="text.secondary">
                             {new Date(item.createdAt).toLocaleString()}
                         </Typography>
-
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ pt: 0.5, pb: 1 }}>
                         {item.summary && (
-                            <Box mt={1}>
+                            <Box>
                                 <Typography variant="subtitle2">Summary</Typography>
                                 <Typography variant="body2">{item.summary}</Typography>
                             </Box>
@@ -89,14 +100,14 @@ export default function CVReviewerHistory() {
                                 <summary style={{ cursor: 'pointer' }}>Full Text</summary>
                                 <Typography
                                     variant="body2"
-                                    sx={{ whiteSpace: 'pre-wrap', mt: 1 }}
+                                    sx={{ whiteSpace: 'pre-wrap', mt: 0.5 }}
                                 >
                                     {item.rawText}
                                 </Typography>
                             </details>
                         </Box>
 
-                        <Box mt={2}>
+                        <Box mt={1}>
                             <Button
                                 size="small"
                                 variant="outlined"
@@ -105,8 +116,8 @@ export default function CVReviewerHistory() {
                                 Download .txt
                             </Button>
                         </Box>
-                    </CardContent>
-                </Card>
+                    </AccordionDetails>
+                </Accordion>
             ))}
         </Box>
     );
