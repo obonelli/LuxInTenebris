@@ -3,7 +3,10 @@
 This project is a **Next.js 15** application that serves as a modern **job board and recruitment system**, inspired by platforms like Computrabajo.  
 It connects candidates with open roles and supports recruiters with **AI-assisted insights** to improve the hiring process.
 
----
+``` bash
+## 🌐 Demo
+```
+You can test the live demo here: <https://www.luxintenebris.mx>
 
 ## 🚀 Features
 
@@ -110,13 +113,6 @@ OPENAI_API_KEY=your_openai_api_key
 - [ ] Admin panel for job insights  
 - [ ] Administrative module to create/manage new job postings  
 - [ ] Candidate testing module (practice exercises & assessments)  
-
-------------------------------------------------------------------------
-
-``` bash
-## 🌐 Demo
-```
-You can test the live demo here: <https://www.luxintenebris.mx>
 
 ------------------------------------------------------------------------
 
